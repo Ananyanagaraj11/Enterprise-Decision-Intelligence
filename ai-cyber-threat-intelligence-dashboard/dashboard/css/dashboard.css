@@ -1,0 +1,279 @@
+/* Analysis Page Styles */
+.analysis-container {
+    padding: 20px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.upload-section {
+    margin-bottom: 40px;
+}
+
+.upload-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 40px;
+    text-align: center;
+}
+
+.upload-card h2 {
+    font-size: 24px;
+    margin-bottom: 8px;
+    color: var(--text-primary);
+}
+
+.upload-card > p {
+    color: var(--text-secondary);
+    margin-bottom: 30px;
+}
+
+.upload-area {
+    border: 2px dashed var(--border-color);
+    border-radius: 12px;
+    padding: 60px 40px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.upload-area:hover {
+    border-color: var(--accent-cyan);
+    background: rgba(0, 212, 170, 0.05);
+}
+
+.upload-area.drag-over {
+    border-color: var(--accent-cyan);
+    background: rgba(0, 212, 170, 0.1);
+}
+
+.upload-area svg {
+    color: var(--accent-cyan);
+    margin-bottom: 20px;
+}
+
+.upload-area p {
+    color: var(--text-secondary);
+    margin: 10px 0;
+}
+
+.upload-or {
+    color: var(--text-muted);
+    font-size: 14px;
+}
+
+.btn-upload {
+    margin-top: 20px;
+    padding: 12px 32px;
+    background: var(--accent-cyan);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-upload:hover {
+    background: #00b89a;
+    transform: translateY(-2px);
+}
+
+.file-info {
+    margin-top: 30px;
+    padding: 20px;
+    background: rgba(59, 130, 246, 0.1);
+    border: 1px solid var(--accent-blue);
+    border-radius: 8px;
+}
+
+.file-info p {
+    color: var(--text-primary);
+    margin: 8px 0;
+}
+
+.progress-section {
+    margin-top: 30px;
+}
+
+.progress-bar {
+    height: 8px;
+    background: var(--bg-darker);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 10px;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent-cyan), var(--accent-blue));
+    transition: width 0.3s ease;
+}
+
+#progressText {
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+/* Results Section */
+.results-section {
+    animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.results-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+
+.result-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 24px;
+}
+
+.result-card.full-width {
+    grid-column: 1 / -1;
+}
+
+.result-card h3 {
+    font-size: 18px;
+    color: var(--text-primary);
+    margin-bottom: 20px;
+}
+
+.summary-stats {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+
+.stat-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.stat-label {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.stat-value {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--accent-cyan);
+}
+
+.stat-value.stat-danger {
+    color: var(--accent-red);
+}
+
+.stat-value.stat-success {
+    color: var(--accent-green);
+}
+
+.stat-value.stat-info {
+    color: var(--accent-blue);
+}
+
+/* Table Styles */
+.table-container {
+    overflow-x: auto;
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+thead {
+    position: sticky;
+    top: 0;
+    background: var(--bg-darker);
+    z-index: 10;
+}
+
+th, td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+}
+
+th {
+    font-size: 11px;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 600;
+}
+
+td {
+    color: var(--text-primary);
+    font-size: 13px;
+}
+
+tr:hover {
+    background: rgba(59, 130, 246, 0.05);
+}
+
+.class-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.class-badge.benign {
+    background: rgba(34, 197, 94, 0.2);
+    color: var(--accent-green);
+}
+
+.class-badge.bot {
+    background: rgba(245, 158, 11, 0.2);
+    color: var(--accent-orange);
+}
+
+.class-badge.ddos {
+    background: rgba(239, 68, 68, 0.2);
+    color: var(--accent-red);
+}
+
+.class-badge.portscan {
+    background: rgba(59, 130, 246, 0.2);
+    color: var(--accent-blue);
+}
+
+.status-correct {
+    color: var(--accent-green);
+    font-weight: 600;
+}
+
+.status-incorrect {
+    color: var(--accent-red);
+    font-weight: 600;
+}
+
+/* Navigation */
+.nav-link {
+    color: var(--accent-cyan);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 600;
+    transition: color 0.3s ease;
+}
+
+.nav-link:hover {
+    color: #00b89a;
+}

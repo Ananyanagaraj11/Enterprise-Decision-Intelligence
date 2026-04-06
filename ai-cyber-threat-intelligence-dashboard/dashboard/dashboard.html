@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SOC Lite | AI-Powered Network Intrusion Detection System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <style>
+        :root {
+            --bg-dark: #0a0f1a;
+            --bg-card: #0f172a;
+            --border: #1e3a5f;
+            --accent-cyan: #00d4aa;
+            --accent-blue: #3b82f6;
+            --text-primary: #e0f2fe;
+            --text-secondary: #94a3b8;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* --- SOC Background (lightweight, chart-safe) --- */
+        .bg-grid {
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(0, 212, 170, 0.035) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 212, 170, 0.035) 1px, transparent 1px);
+            background-size: 70px 70px;
+            animation: gridMove 22s linear infinite;
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0.9;
+        }
+        @keyframes gridMove {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(70px, 70px); }
+        }
+
+        #particles-canvas {
+            position: fixed;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .vignette {
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(circle at center, transparent 0%, rgba(0,0,0,0.75) 100%);
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        .scan-line {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, rgba(0, 212, 170, 0.75), transparent);
+            z-index: 3;
+            animation: scan 10s linear infinite;
+            box-shadow: 0 0 14px rgba(0, 212, 170, 0.45);
+            pointer-events: none;
+            opacity: 0.65;
+        }
+        @keyframes scan {
+            0% { transform: translateY(0); opacity: 0; }
+            12% { opacity: 1; }
+            88% { opacity: 1; }
+            100% { transform: translateY(100vh); opacity: 0; }
+        }
+
+        /* UI above background */
+        .header, .dashboard { position: relative; z-index: 10; }
+
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 24px;
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(14px);
+            border-bottom: 1px solid var(--border);
+        }
+        .header h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--accent-cyan);
+        }
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        #clock {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+        }
+        #statusIndicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #64748b;
+        }
+        #statusIndicator.connected { background: #22c55e; box-shadow: 0 0 8px #22c55e; }
+        .dashboard {
+            padding: 20px;
+            max-width: 1920px;
+            margin: 0 auto;
+        }
+        .kpi-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        .kpi-card {
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(14px);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+        }
+        .kpi-card .label { font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 4px; }
+        .kpi-card .value { font-size: 1.5rem; font-weight: 700; color: var(--accent-cyan); }
+        .threat-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        #threatLevel {
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+        #threatLevel.CRITICAL { background: #7f1d1d; color: #fecaca; }
+        #threatLevel.HIGH { background: #7c2d12; color: #fed7aa; }
+        #threatLevel.MEDIUM { background: #713f12; color: #fef08a; }
+        #threatLevel.LOW { background: #1e3a5f; color: #bae6fd; }
+        #threatLevel.NORMAL { background: #14532d; color: #bbf7d0; }
+        #threatDesc { color: var(--text-secondary); font-size: 0.9rem; }
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: auto auto auto;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        @media (max-width: 1200px) {
+            .charts-grid { grid-template-columns: 1fr; }
+        }
+        .chart-card {
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(14px);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            min-height: 360px;
+        }
+        .chart-card h3 {
+            font-size: 0.9rem;
+            margin-bottom: 4px;
+            color: var(--text-secondary);
+        }
+        .chart-card .chart-note {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            opacity: 0.9;
+            margin-bottom: 10px;
+        }
+        .chart-card .plot-container { width: 100%; height: 320px; min-height: 300px; }
+        .chart-card.chart-pie .plot-container { height: 380px; min-height: 340px; }
+        .chart-card[style*="grid-column: 1"] .plot-container { height: 340px; }
+        .actions {
+            margin-bottom: 20px;
+        }
+        .nav-btn {
+            padding: 10px 20px;
+            background: #2A3F4F;
+            border: 1px solid #7DF2C6;
+            border-radius: 10px;
+            color: #7DF2C6;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            display: inline-block;
+        }
+        .nav-btn:hover {
+            background: rgba(125, 242, 198, 0.15);
+            box-shadow: 0 0 20px rgba(125, 242, 198, 0.3);
+        }
+        #runPredictionBtn {
+            padding: 10px 24px;
+            background: #2A3F4F;
+            border: 1px solid #7DF2C6;
+            border-radius: 10px;
+            color: #7DF2C6;
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        #runPredictionBtn:hover:not(:disabled) {
+            background: rgba(125, 242, 198, 0.15);
+            box-shadow: 0 0 20px rgba(125, 242, 198, 0.3);
+        }
+        #runPredictionBtn:disabled { opacity: 0.6; cursor: not-allowed; }
+        .alerts-section {
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(14px);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+        }
+        .alerts-section h3 { font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 12px; }
+        #alertsTable { font-size: 0.85rem; }
+        .alert-item { padding: 10px 12px; border-radius: 8px; margin-bottom: 8px; border-left: 4px solid var(--border); }
+        .alert-item.critical { border-left-color: #ef4444; background: rgba(239,68,68,0.1); }
+        .alert-item.high { border-left-color: #f59e0b; background: rgba(245,158,11,0.1); }
+        .alert-item.medium { border-left-color: #3b82f6; background: rgba(59,130,246,0.1); }
+        .alert-item.low { border-left-color: #22c55e; background: rgba(34,197,94,0.1); }
+        .alert-item.benign { border-left-color: var(--text-secondary); }
+        .alert-header { display: flex; justify-content: space-between; margin-bottom: 4px; }
+        .alert-type { font-weight: 600; }
+        .alert-time { color: var(--text-secondary); }
+        .alert-confidence { font-size: 0.8rem; color: var(--text-secondary); }
+        /* CSV results table */
+        #csvResultsSection { margin-bottom: 20px; }
+        .csv-results-card {
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(14px);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+        }
+        .csv-results-card h3 { font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 12px; }
+        .csv-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+        .csv-table th, .csv-table td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--border); }
+        .csv-table th { color: var(--text-secondary); font-weight: 600; }
+        .class-badge { display: inline-block; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 600; }
+        .class-badge.benign { background: rgba(34, 197, 94, 0.2); color: #22c55e; }
+        .class-badge.bot { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
+        .class-badge.ddos { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+        .class-badge.portscan { background: rgba(59, 130, 246, 0.2); color: #3b82f6; }
+        .status-correct { color: #22c55e; font-weight: 600; }
+        .status-incorrect { color: #ef4444; font-weight: 600; }
+        .btn-clear-csv {
+            padding: 8px 16px;
+            background: #2A3F4F;
+            border: 1px solid #7DF2C6;
+            border-radius: 10px;
+            color: #7DF2C6;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 12px;
+        }
+        .btn-clear-csv:hover { background: rgba(125, 242, 198, 0.15); }
+    </style>
+</head>
+<body>
+    <div class="bg-grid"></div>
+    <canvas id="particles-canvas"></canvas>
+    <div class="vignette"></div>
+    <div class="scan-line"></div>
+
+    <header class="header">
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <a href="index.html" class="nav-btn">Home</a>
+            <a href="analysis.html" class="nav-btn">CSV Analysis</a>
+            <h1 style="margin-left: 20px;">SOC Lite: AI-Powered Network Intrusion Detection System</h1>
+        </div>
+        <div class="header-right">
+            <span id="clock">--</span>
+            <div class="status">
+                <span id="statusIndicator"></span>
+                <span id="statusText">Checking...</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="dashboard">
+        <div class="kpi-row">
+            <div class="kpi-card">
+                <div class="label">Total Events</div>
+                <div class="value" id="totalEvents">0</div>
+            </div>
+            <div class="kpi-card">
+                <div class="label">In Queue</div>
+                <div class="value" id="eventsChange">0</div>
+            </div>
+            <div class="kpi-card">
+                <div class="label">Attack Events</div>
+                <div class="value" id="attackEvents">0</div>
+            </div>
+            <div class="kpi-card">
+                <div class="label">Attack %</div>
+                <div class="value" id="attackPercent">0</div>
+            </div>
+        </div>
+
+        <div class="threat-row">
+            <span id="threatLevel" class="NORMAL">NORMAL</span>
+            <span id="threatDesc">No significant threat activity.</span>
+        </div>
+
+        <div class="actions">
+            <p style="margin-top: 10px; font-size: 0.8rem; color: var(--text-secondary);">Use <strong>Index → CSV Analysis → Dashboard</strong>. After running <strong>Analyze File</strong> on the CSV page, click <strong>Load CSV results</strong> or <strong>Run Prediction</strong> here to show results. Backend must run on port 8000.</p>
+        </div>
+
+        <div class="charts-grid">
+            <div class="chart-card chart-pie">
+                <h3>Attack Distribution</h3>
+                <div id="attackDistPie" class="plot-container"></div>
+            </div>
+            <div class="chart-card">
+                <h3>Top Attack Types</h3>
+                <div id="topAttacksBar" class="plot-container"></div>
+            </div>
+            <div class="chart-card">
+                <h3>Severity Over Time</h3>
+                <p class="chart-note">Spikes = attack events. Based on first 100 rows (table below); overall attack % is in the donut.</p>
+                <div id="severityLine" class="plot-container"></div>
+            </div>
+            <div class="chart-card">
+                <h3>Events Timeline</h3>
+                <p class="chart-note">Cumulative counts over first 100 events.</p>
+                <div id="eventsTimeline" class="plot-container"></div>
+            </div>
+            <div class="chart-card" style="grid-column: 1 / -1;">
+                <h3>Confidence Distribution</h3>
+                <p class="chart-note">How many predictions fall in each confidence range (model certainty).</p>
+                <div id="confidenceDist" class="plot-container"></div>
+            </div>
+        </div>
+
+        <section id="csvResultsSection" class="csv-results-card" style="display: none;">
+            <h3>CSV Analysis Results (from last upload)</h3>
+            <div class="table-container" style="overflow-x: auto;">
+                <table class="csv-table">
+                    <thead>
+                        <tr>
+                            <th>Entry #</th>
+                            <th>Predicted Class</th>
+                            <th>Confidence</th>
+                            <th>Actual Class</th>
+                            <th>Result</th>
+                        </tr>
+                    </thead>
+                    <tbody id="csvResultsTableBody"></tbody>
+                </table>
+            </div>
+            <button type="button" class="btn-clear-csv" onclick="clearCSVData()">Clear CSV data & use live predictions</button>
+        </section>
+
+        <section class="alerts-section">
+            <h3>Recent Alerts</h3>
+            <div id="alertsTable"></div>
+        </section>
+    </main>
+
+    <script src="js/config.js"></script>
+    <script src="js/dashboard.js"></script>
+
+<script>
+(function () {
+
+    const canvas = document.getElementById('particles-canvas');
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d', { alpha: true });
+
+    function resize() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    /* ===============================
+       DATA PACKET STREAM (left → right)
+    =============================== */
+
+    class Packet {
+        constructor() {
+            this.reset();
+        }
+
+        reset() {
+            this.x = -20;
+            this.y = Math.random() * canvas.height;
+            this.speed = Math.random() * 1.2 + 0.4;
+            this.length = Math.random() * 60 + 30;
+            this.opacity = Math.random() * 0.25 + 0.05;
+        }
+
+        update() {
+            this.x += this.speed;
+            if (this.x > canvas.width + 50) {
+                this.reset();
+            }
+        }
+
+        draw() {
+            const gradient = ctx.createLinearGradient(
+                this.x,
+                this.y,
+                this.x + this.length,
+                this.y
+            );
+
+            gradient.addColorStop(0, "rgba(0,212,170,0)");
+            gradient.addColorStop(0.5, `rgba(0,212,170,${this.opacity})`);
+            gradient.addColorStop(1, "rgba(0,212,170,0)");
+
+            ctx.strokeStyle = gradient;
+            ctx.lineWidth = 1.2;
+
+            ctx.beginPath();
+            ctx.moveTo(this.x, this.y);
+            ctx.lineTo(this.x + this.length, this.y);
+            ctx.stroke();
+        }
+    }
+
+    /* ===============================
+       AI NODE PULSES
+    =============================== */
+
+    class Node {
+        constructor() {
+            this.x = Math.random() * canvas.width;
+            this.y = Math.random() * canvas.height;
+            this.baseRadius = Math.random() * 2 + 1.5;
+            this.phase = Math.random() * Math.PI * 2;
+        }
+
+        draw(time) {
+            const pulse = Math.sin(time * 0.002 + this.phase) * 0.5 + 0.5;
+            const radius = this.baseRadius + pulse * 3;
+
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, radius, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(59,130,246,${0.15 + pulse * 0.2})`;
+            ctx.fill();
+        }
+    }
+
+    /* ===============================
+       VERTICAL TRAFFIC BEAMS
+    =============================== */
+
+    class Beam {
+        constructor() {
+            this.x = Math.random() * canvas.width;
+            this.opacity = Math.random() * 0.04 + 0.01;
+        }
+
+        draw() {
+            ctx.fillStyle = `rgba(0,212,170,${this.opacity})`;
+            ctx.fillRect(this.x, 0, 1, canvas.height);
+        }
+    }
+
+    const packets = [];
+    const nodes = [];
+    const beams = [];
+
+    for (let i = 0; i < 35; i++) packets.push(new Packet());
+    for (let i = 0; i < 25; i++) nodes.push(new Node());
+    for (let i = 0; i < 12; i++) beams.push(new Beam());
+
+    function animate(time) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Draw beams first
+        beams.forEach(b => b.draw());
+
+        // Draw packets
+        packets.forEach(p => {
+            p.update();
+            p.draw();
+        });
+
+        // Draw nodes
+        nodes.forEach(n => n.draw(time));
+
+        requestAnimationFrame(animate);
+    }
+
+    animate();
+
+})();
+</script>

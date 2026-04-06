@@ -1,0 +1,377 @@
+{% extends "core/base.html" %}
+{% block title %}Dashboard{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+{% endblock %}
+
+{% block hero %}
+{% if focus_is_anomaly %}
+<section class="relative overflow-hidden border-b border-rose-400/30 bg-gradient-to-br from-rose-600 via-red-700 to-rose-950 text-white">
+  <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_20%_0%,rgba(255,255,255,0.2),transparent_55%)]"></div>
+  <div class="absolute bottom-0 right-0 h-40 w-40 rounded-full bg-amber-400/20 blur-3xl"></div>
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 py-10 sm:py-12 relative">
+    <div class="flex flex-wrap items-center gap-3 mb-4">
+      <span class="inline-flex items-center gap-2 rounded-full bg-white/20 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-rose-100 ring-2 ring-white/30 shadow-lg animate-pulse-soft">
+        <span class="relative flex h-2.5 w-2.5">
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-300 opacity-75"></span>
+          <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-400"></span>
+        </span>
+        Anomaly · focus day
+      </span>
+      {% if focus_confidence is not None %}
+      <span class="text-sm text-rose-100/90">Confidence <strong class="text-white tabular-nums">{{ focus_confidence|floatformat:2 }}</strong></span>
+      {% endif %}
+    </div>
+    <h1 class="font-display text-3xl sm:text-4xl font-extrabold tracking-tight">Attention required</h1>
+    <p class="mt-3 text-rose-100 max-w-2xl text-base sm:text-lg leading-relaxed">
+      This day sits outside the rolling baseline. Root-cause attribution and actions below are prioritized for review.
+    </p>
+  </div>
+</section>
+{% else %}
+<section class="relative overflow-hidden border-b border-indigo-200/40 bg-gradient-to-br from-slate-800 via-indigo-800 to-slate-900 text-white">
+  <div class="absolute inset-0 opacity-40 bg-[radial-gradient(ellipse_at_80%_20%,rgba(99,102,241,0.5),transparent_50%)]"></div>
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 py-10 sm:py-12 relative">
+    <div class="flex flex-wrap items-center gap-2 mb-3">
+      <span class="rounded-full bg-emerald-500/20 text-emerald-200 text-xs font-semibold px-3 py-1 ring-1 ring-emerald-400/30">Focus day · within band</span>
+      {% if n_anomalies > 0 %}
+      <span class="rounded-full bg-amber-500/20 text-amber-100 text-xs font-semibold px-3 py-1 ring-1 ring-amber-400/25">{{ n_anomalies }} other day{{ n_anomalies|pluralize }} flagged in series</span>
+      {% endif %}
+    </div>
+    <h1 class="font-display text-3xl sm:text-4xl font-extrabold tracking-tight">Signal overview</h1>
+    <p class="mt-3 text-slate-300 max-w-2xl text-base sm:text-lg leading-relaxed">
+      Monitor <strong class="text-white">{{ metric_label }}</strong>, compare to baselines, and inspect anomalies when they fire.
+    </p>
+  </div>
+</section>
+{% endif %}
+{% endblock %}
+
+{% block main_padding %}pt-8{% endblock %}
+
+{% block content %}
+<div class="lg:grid lg:grid-cols-12 lg:gap-10 lg:items-start space-y-8 lg:space-y-0">
+  {# Sidebar: controls + KPIs #}
+  <aside class="lg:col-span-4 space-y-6 lg:sticky lg:top-24 lg:self-start">
+    <form method="get" class="edi-card-strong p-5 sm:p-6 space-y-5">
+      <p class="font-display font-semibold text-slate-900 text-sm border-b border-slate-100 pb-3">Data &amp; model</p>
+      <div class="space-y-4">
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Dataset</label>
+          <select name="csv" onchange="this.form.submit()" class="w-full rounded-xl border border-slate-200/90 bg-white px-3 py-2.5 text-sm text-slate-800 shadow-sm focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-400">
+            <option value="data/ga4_public_daily.csv" {% if query.csv == "data/ga4_public_daily.csv" %}selected{% endif %}>GA4 public sample</option>
+            <option value="data/thelook_ecommerce_daily.csv" {% if query.csv == "data/thelook_ecommerce_daily.csv" %}selected{% endif %}>The Look eCommerce</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Metric</label>
+          <select name="metric" onchange="this.form.submit()" class="w-full rounded-xl border border-slate-200/90 bg-white px-3 py-2.5 text-sm shadow-sm focus:ring-2 focus:ring-indigo-500/40">
+            <option value="revenue" {% if query.metric == "revenue" %}selected{% endif %}>Revenue</option>
+            <option value="sessions" {% if query.metric == "sessions" %}selected{% endif %}>Sessions</option>
+            <option value="purchases" {% if query.metric == "purchases" %}selected{% endif %}>Purchases</option>
+            <option value="conversion_rate" {% if query.metric == "conversion_rate" %}selected{% endif %}>Conversion rate</option>
+            <option value="active_users" {% if query.metric == "active_users" %}selected{% endif %}>Active buyers</option>
+            <option value="line_items" {% if query.metric == "line_items" %}selected{% endif %}>Line items</option>
+            <option value="aov" {% if query.metric == "aov" %}selected{% endif %}>Average order value</option>
+          </select>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Window</label>
+            <input type="number" name="window" value="{{ query.window }}" min="7" max="28" class="w-full rounded-xl border border-slate-200/90 bg-white px-3 py-2 text-sm"/>
+          </div>
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Eval</label>
+            <select name="eval" onchange="this.form.submit()" class="w-full rounded-xl border border-slate-200/90 bg-white px-2 py-2 text-sm">
+              <option value="1" {% if query.eval == "1" %}selected{% endif %}>Inject</option>
+              <option value="0" {% if query.eval == "0" %}selected{% endif %}>Raw</option>
+            </select>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-[11px] text-slate-500 mb-1">Inject N</label>
+            <input type="number" name="inject" value="{{ query.inject }}" min="3" max="25" class="w-full rounded-xl border border-slate-200/90 bg-white px-3 py-2 text-sm"/>
+          </div>
+          <div>
+            <label class="block text-[11px] text-slate-500 mb-1">Seed</label>
+            <input type="number" name="seed" value="{{ query.seed }}" class="w-full rounded-xl border border-slate-200/90 bg-white px-3 py-2 text-sm"/>
+          </div>
+        </div>
+        <button type="submit" class="w-full rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white text-sm font-semibold py-2.5 shadow-md shadow-indigo-600/20 transition-all">
+          Apply filters
+        </button>
+      </div>
+    </form>
+
+    <div class="space-y-3">
+      <div class="edi-card p-5 bg-gradient-to-br from-indigo-50/90 to-white border-indigo-100/80">
+        <p class="text-[11px] font-bold text-indigo-800/80 uppercase tracking-wider">Series length</p>
+        <p class="font-display text-3xl font-bold text-slate-900 mt-1 tabular-nums">{{ n_days }}</p>
+        <p class="text-xs text-slate-500 mt-2 truncate" title="{{ csv_name }}">{{ csv_name }}</p>
+      </div>
+      <div class="edi-card p-5 {% if n_anomalies > 0 %}animate-pulse-soft border-rose-200/90 bg-gradient-to-br from-rose-50 via-white to-orange-50/50 ring-2 ring-rose-300/50{% else %}bg-gradient-to-br from-slate-50 to-white border-slate-200/80{% endif %}">
+        <div class="flex items-center justify-between gap-2">
+          <p class="text-[11px] font-bold {% if n_anomalies > 0 %}text-rose-800{% else %}text-slate-500{% endif %} uppercase tracking-wider">Anomaly days</p>
+          {% if n_anomalies > 0 %}
+          <span class="text-[10px] font-bold uppercase text-rose-600 bg-rose-100 px-2 py-0.5 rounded-full">Active</span>
+          {% endif %}
+        </div>
+        <p class="font-display text-3xl font-bold {% if n_anomalies > 0 %}text-rose-600{% else %}text-slate-400{% endif %} mt-1 tabular-nums">{{ n_anomalies }}</p>
+        <p class="text-xs text-slate-500 mt-2">Agent vs rolling baseline</p>
+      </div>
+      <div class="edi-card p-5 bg-gradient-to-br from-violet-50/80 to-white border-violet-100/80">
+        <p class="text-[11px] font-bold text-violet-900/70 uppercase tracking-wider mb-2">Focus day</p>
+        <form method="get">
+          {% for k,v in query.items %}
+            {% if k != 'day' %}<input type="hidden" name="{{ k }}" value="{{ v }}"/>{% endif %}
+          {% endfor %}
+          <select name="day" onchange="this.form.submit()" class="w-full rounded-xl border border-violet-200/90 bg-white px-3 py-2.5 text-sm font-medium text-slate-800 shadow-sm focus:ring-2 focus:ring-violet-400/50">
+            {% for opt in day_options %}
+            <option value="{{ opt.i }}" {% if opt.i == pick_index %}selected{% endif %} class="{% if opt.is_anomaly %}font-semibold text-rose-700{% endif %}">{{ opt.label }}</option>
+            {% endfor %}
+          </select>
+        </form>
+      </div>
+    </div>
+  </aside>
+
+  {# Main column #}
+  <div class="lg:col-span-8 space-y-8 min-w-0">
+    {% if focus_is_anomaly %}
+    <div class="relative overflow-hidden rounded-2xl border border-rose-400/40 bg-gradient-to-r from-rose-600 via-red-600 to-amber-600 p-1 shadow-xl shadow-rose-600/20">
+      <div class="rounded-[0.9rem] bg-gradient-to-br from-white/95 to-rose-50/90 px-5 py-4 sm:px-6 sm:py-5 flex flex-col sm:flex-row sm:items-center gap-4">
+        <div class="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-rose-500 to-red-600 text-white shadow-lg">
+          <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+        </div>
+        <div class="min-w-0 flex-1">
+          <p class="font-display font-bold text-lg text-rose-950">This focus day is an anomaly</p>
+          <p class="text-sm text-rose-900/80 mt-0.5">Review dimension shifts and recommended actions below. {% if focus_confidence is not None %}Model confidence: <strong class="tabular-nums">{{ focus_confidence|floatformat:2 }}</strong>.{% endif %}</p>
+        </div>
+      </div>
+    </div>
+    {% elif n_anomalies > 0 %}
+    <div class="rounded-2xl border border-amber-200/80 bg-gradient-to-r from-amber-50 to-orange-50/80 px-5 py-4 flex items-start gap-3 shadow-sm">
+      <span class="text-amber-600 text-xl" aria-hidden="true">●</span>
+      <div>
+        <p class="font-display font-semibold text-amber-950">Focus day is normal</p>
+        <p class="text-sm text-amber-900/80 mt-0.5">{{ n_anomalies }} other day{{ n_anomalies|pluralize }} in this run {% if n_anomalies == 1 %}is{% else %}are{% endif %} still flagged — pick an <strong>Anomaly</strong> date in the sidebar to see attribution.</p>
+      </div>
+    </div>
+    {% endif %}
+
+    <div class="edi-card p-6 sm:p-7 {% if focus_is_anomaly %}ring-2 ring-rose-200/60 shadow-lg shadow-rose-900/5{% endif %}">
+      <div class="flex items-start gap-3 mb-4">
+        {% if focus_is_anomaly %}
+        <span class="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-rose-100 text-rose-600">
+          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+        </span>
+        {% else %}
+        <span class="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-indigo-100 text-indigo-600">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        </span>
+        {% endif %}
+        <div class="min-w-0">
+          <h2 class="font-display text-lg font-bold text-slate-900">Insight for {{ selected_day_human }}</h2>
+          <p class="text-xs text-slate-500 mt-0.5">{{ metric_label }} · rolling window {{ query.window }}d</p>
+        </div>
+      </div>
+      {{ summary_html|safe }}
+      {% if explanation %}
+      <div class="mt-4 p-4 rounded-xl {% if focus_is_anomaly %}bg-rose-50/80 border border-rose-100{% else %}bg-slate-50 border border-slate-100{% endif %} text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">{{ explanation }}</div>
+      {% endif %}
+    </div>
+
+    {% if chart_norm %}
+    <div class="edi-card p-6 sm:p-7">
+      <h2 class="font-display font-bold text-slate-900">Volume context</h2>
+      <p class="text-sm text-slate-500 mt-1 mb-4">Normalized 0–1 per series — compare shape, not scale.</p>
+      <div class="h-64 sm:h-72"><canvas id="chartNorm"></canvas></div>
+    </div>
+    {% endif %}
+
+    <div class="grid grid-cols-1 gap-8">
+      <div class="edi-card p-6 sm:p-7">
+        <h2 class="font-display font-bold text-slate-900">{{ metric_label }} over time</h2>
+        <p class="text-sm text-slate-500 mt-1 mb-4">Solid = actual · dashed = rolling mean · markers = anomalies</p>
+        <div class="h-64 sm:h-72"><canvas id="chartLine"></canvas></div>
+      </div>
+      <div class="edi-card p-6 sm:p-7 border-cyan-100/80 bg-gradient-to-b from-cyan-50/30 to-white/80">
+        <h2 class="font-display font-bold text-slate-900">Unusualness (|z|)</h2>
+        <p class="text-sm text-slate-500 mt-1 mb-4">Distance from rolling mean in σ units</p>
+        <div class="h-64 sm:h-72"><canvas id="chartZ"></canvas></div>
+      </div>
+    </div>
+
+    {% if report %}
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div class="edi-card p-6 bg-gradient-to-br from-emerald-50/50 to-white">
+        <h2 class="font-display font-bold text-slate-900">Detection (F1)</h2>
+        <p class="text-xs text-slate-500 mt-1 mb-4">Inject-mode labels</p>
+        <div class="h-56"><canvas id="chartF1"></canvas></div>
+      </div>
+      <div class="edi-card p-6 bg-gradient-to-br from-sky-50/50 to-white">
+        <h2 class="font-display font-bold text-slate-900">Precision &amp; recall</h2>
+        <div class="h-56"><canvas id="chartPR"></canvas></div>
+      </div>
+    </div>
+    {% endif %}
+
+    <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+      <div class="edi-card p-6 overflow-hidden {% if focus_is_anomaly and root_causes %}ring-1 ring-rose-200/50{% endif %}">
+        <h2 class="font-display font-bold text-slate-900 mb-4">Root causes</h2>
+        {% if root_causes %}
+        <div class="overflow-x-auto rounded-xl border border-slate-200/60">
+          <table class="min-w-full text-sm">
+            <thead class="bg-slate-900/[0.04] text-slate-700 font-semibold text-left">
+              <tr><th class="py-3 px-3">Dimension</th><th class="py-3 px-3">Value</th><th class="py-3 px-3 text-right">Share</th></tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+              {% for r in root_causes %}
+              <tr class="hover:bg-indigo-50/40">
+                <td class="py-3 px-3 font-medium text-slate-800">{{ r.dimension }}</td>
+                <td class="py-3 px-3 text-slate-600">{{ r.value }}</td>
+                <td class="py-3 px-3 text-right font-bold text-indigo-700 tabular-nums">{{ r.contribution_pct }}%</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <p class="text-slate-500 text-sm">No attribution for this day — choose an <strong class="text-rose-600">Anomaly</strong> in the focus list or enable evaluation on <strong>revenue</strong>.</p>
+        {% endif %}
+      </div>
+      <div class="edi-card p-6 bg-gradient-to-br from-emerald-50/40 via-white to-teal-50/30 {% if focus_is_anomaly and ranked_actions %}ring-1 ring-emerald-200/60{% endif %}">
+        <h2 class="font-display font-bold text-slate-900 mb-4">Recommended actions</h2>
+        {% if ranked_actions %}
+        <ul class="space-y-2.5 max-h-[min(28rem,50vh)] overflow-y-auto pr-1">
+          {% for a in ranked_actions %}
+          <li class="flex justify-between items-start gap-3 p-3.5 rounded-xl bg-white/90 border border-emerald-100/90 shadow-sm">
+            <div class="min-w-0">
+              <p class="font-semibold text-slate-900 text-sm">{{ a.label }}</p>
+              <p class="text-[11px] text-slate-500 mt-0.5">Impact / risk / cost</p>
+            </div>
+            <span class="text-sm font-bold text-emerald-700 tabular-nums shrink-0">{{ a.utility }}</span>
+          </li>
+          {% endfor %}
+        </ul>
+        {% else %}
+        <p class="text-slate-500 text-sm">Actions appear when the pipeline flags an anomaly with sufficient confidence.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="application/json" id="data-line">{{ chart_line|safe }}</script>
+<script type="application/json" id="data-z">{{ chart_z|safe }}</script>
+{% if chart_norm %}<script type="application/json" id="data-norm">{{ chart_norm|safe }}</script>{% endif %}
+<script type="application/json" id="data-f1">{{ chart_f1|safe }}</script>
+<script type="application/json" id="data-pr">{{ chart_pr|safe }}</script>
+<script>
+  const lineData = JSON.parse(document.getElementById('data-line').textContent);
+  const zData = JSON.parse(document.getElementById('data-z').textContent);
+  const gridSoft = 'rgba(148, 163, 184, 0.22)';
+
+  const lineCtx = document.getElementById('chartLine');
+  const anomPoints = lineData.values.map((v, i) => lineData.anomalies[i] ? v : null);
+  new Chart(lineCtx, {
+    type: 'line',
+    data: {
+      labels: lineData.labels,
+      datasets: [
+        { label: '{{ metric_label }}', data: lineData.values, borderColor: '#4f46e5', backgroundColor: 'rgba(79,70,229,0.07)', fill: true, tension: 0.2, pointRadius: 0, borderWidth: 2 },
+        { label: 'Rolling mean', data: lineData.rolling, borderColor: '#94a3b8', borderDash: [6, 4], tension: 0.2, pointRadius: 0, borderWidth: 2 },
+        { label: 'Anomaly', data: anomPoints, borderColor: '#e11d48', backgroundColor: '#e11d48', pointRadius: 7, pointHoverRadius: 9, showLine: false },
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { intersect: false, mode: 'index' },
+      plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, padding: 14 } } },
+      scales: { x: { grid: { display: false } }, y: { grid: { color: gridSoft } } }
+    }
+  });
+
+  {% if chart_norm %}
+  const normRaw = JSON.parse(document.getElementById('data-norm').textContent);
+  const palette = ['#4f46e5', '#0d9488', '#a855f7', '#ea580c'];
+  new Chart(document.getElementById('chartNorm'), {
+    type: 'line',
+    data: {
+      labels: normRaw.labels,
+      datasets: normRaw.datasets.map((ds, i) => ({
+        label: ds.label,
+        data: ds.data,
+        borderColor: palette[i % palette.length],
+        backgroundColor: 'transparent',
+        tension: 0.2,
+        pointRadius: 0,
+        spanGaps: true,
+        borderWidth: 2,
+      })),
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { intersect: false, mode: 'index' },
+      plugins: { legend: { position: 'bottom' } },
+      scales: { x: { grid: { display: false } }, y: { min: 0, max: 1, grid: { color: gridSoft } } },
+    },
+  });
+  {% endif %}
+
+  new Chart(document.getElementById('chartZ'), {
+    type: 'line',
+    data: {
+      labels: zData.labels,
+      datasets: [{
+        label: '|z|',
+        data: zData.z,
+        borderColor: '#0891b2',
+        backgroundColor: 'rgba(8,145,178,0.11)',
+        fill: true,
+        tension: 0.25,
+        spanGaps: true,
+        borderWidth: 2,
+      },
+      {
+        label: 'Threshold (2.5)',
+        data: zData.labels.map(() => 2.5),
+        borderColor: '#f97316',
+        borderDash: [8, 4],
+        pointRadius: 0,
+        borderWidth: 2,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: 'bottom' } },
+      scales: { y: { beginAtZero: true, grid: { color: gridSoft } }, x: { grid: { display: false } } }
+    }
+  });
+
+  {% if report %}
+  const f1 = JSON.parse(document.getElementById('data-f1').textContent);
+  const pr = JSON.parse(document.getElementById('data-pr').textContent);
+  new Chart(document.getElementById('chartF1'), {
+    type: 'bar',
+    data: { labels: f1.labels, datasets: [{ label: 'F1', data: f1.values, backgroundColor: ['#059669', '#cbd5e1', '#cbd5e1', '#cbd5e1'], borderRadius: 8 }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { max: 1, beginAtZero: true, grid: { color: gridSoft } }, x: { grid: { display: false } } } }
+  });
+  new Chart(document.getElementById('chartPR'), {
+    type: 'bar',
+    data: {
+      labels: pr.labels,
+      datasets: pr.datasets.map((ds, i) => ({
+        label: ds.label,
+        data: ds.data,
+        backgroundColor: i === 0 ? 'rgba(79,70,229,0.85)' : 'rgba(16,185,129,0.85)',
+        borderRadius: 6,
+      }))
+    },
+    options: { responsive: true, maintainAspectRatio: false, scales: { y: { max: 1, beginAtZero: true, grid: { color: gridSoft } }, x: { grid: { display: false } } } }
+  });
+  {% endif %}
+</script>
+{% endblock %}

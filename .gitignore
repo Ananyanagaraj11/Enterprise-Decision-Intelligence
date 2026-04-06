@@ -1,0 +1,4 @@
+# Root monorepo — common noise
+Thumbs.db
+Desktop.ini
+*.stackdump

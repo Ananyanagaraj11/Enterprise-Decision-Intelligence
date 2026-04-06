@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>{% block title %}Enterprise Decision Intelligence{% endblock %} · EDI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            display: ['Plus Jakarta Sans', 'Inter', 'system-ui', 'sans-serif'],
+          },
+          animation: {
+            'float': 'float 20s ease-in-out infinite',
+            'pulse-soft': 'pulseSoft 2.5s ease-in-out infinite',
+            'glow-line': 'glowLine 2s ease-in-out infinite',
+          },
+          keyframes: {
+            float: { '0%, 100%': { transform: 'translate(0, 0) scale(1)' }, '50%': { transform: 'translate(2%, -2%) scale(1.02)' } },
+            pulseSoft: { '0%, 100%': { opacity: '1', boxShadow: '0 0 0 0 rgba(244, 63, 94, 0.35)' }, '50%': { opacity: '0.95', boxShadow: '0 0 0 12px rgba(244, 63, 94, 0)' } },
+            glowLine: { '0%, 100%': { opacity: '0.5' }, '50%': { opacity: '1' } },
+          },
+        },
+      },
+    };
+  </script>
+  {% block extra_head %}{% endblock %}
+  <style>
+    .edi-surface {
+      background:
+        radial-gradient(1000px 500px at 0% 0%, rgba(99, 102, 241, 0.11), transparent 50%),
+        radial-gradient(800px 450px at 100% 10%, rgba(244, 63, 94, 0.06), transparent 45%),
+        radial-gradient(600px 400px at 50% 100%, rgba(6, 182, 212, 0.08), transparent 50%),
+        linear-gradient(180deg, #f8fafc 0%, #f1f5f9 40%, #eef2ff 100%);
+    }
+    .edi-card {
+      border-radius: 1.125rem;
+      border: 1px solid rgba(226, 232, 240, 0.9);
+      background: rgba(255, 255, 255, 0.82);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      box-shadow: 0 4px 6px -1px rgba(15, 23, 42, 0.05), 0 18px 50px -15px rgba(51, 65, 85, 0.12);
+    }
+    .edi-card-strong {
+      border-radius: 1.125rem;
+      border: 1px solid rgba(255, 255, 255, 0.6);
+      background: rgba(255, 255, 255, 0.94);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      box-shadow: 0 10px 40px -12px rgba(30, 27, 75, 0.15);
+    }
+    .edi-nav-glass {
+      background: rgba(255, 255, 255, 0.78);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+    }
+    .edi-kpi-anomaly {
+      animation: pulseSoft 2.5s ease-in-out infinite;
+    }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+    .animate-fade-up { animation: fadeUp 0.5s ease-out both; }
+  </style>
+</head>
+<body class="edi-surface text-slate-800 min-h-screen font-sans antialiased relative overflow-x-hidden">
+  <div class="pointer-events-none fixed inset-0 -z-10" aria-hidden="true">
+    <div class="absolute -top-40 -left-32 h-[28rem] w-[28rem] rounded-full bg-indigo-400/15 blur-3xl animate-float"></div>
+    <div class="absolute top-1/4 -right-24 h-96 w-96 rounded-full bg-rose-300/12 blur-3xl animate-float" style="animation-delay: -7s;"></div>
+    <div class="absolute bottom-0 left-1/4 h-72 w-72 rounded-full bg-cyan-300/10 blur-3xl animate-float" style="animation-delay: -14s;"></div>
+  </div>
+
+  <header class="edi-nav-glass sticky top-0 z-50 border-b border-slate-200/70 shadow-sm shadow-slate-900/[0.04]">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 py-3.5 flex items-center gap-3">
+      <a href="{% url 'dashboard' %}" class="group flex items-center gap-3 min-w-0">
+        <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-600 via-violet-600 to-indigo-800 text-white shadow-lg shadow-indigo-600/25 font-display font-bold text-sm">EDI</span>
+        <div class="min-w-0">
+          <p class="font-display font-bold text-slate-900 text-sm sm:text-base leading-tight truncate group-hover:text-indigo-700 transition-colors">Enterprise Decision Intelligence</p>
+          <p class="text-[11px] text-slate-500 uppercase tracking-widest">CIS-600 · Agentic AI</p>
+        </div>
+      </a>
+    </div>
+  </header>
+
+  {% block hero %}{% endblock %}
+
+  <main class="max-w-6xl mx-auto px-4 sm:px-6 pb-20 {% block main_padding %}pt-6{% endblock %}">
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="border-t border-slate-200/60 bg-white/40 backdrop-blur-sm">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 py-8 text-center text-slate-500 text-sm">
+      {% block footer %}
+      <p class="font-medium text-slate-600">Enterprise Decision Intelligence</p>
+      <p class="mt-1 text-slate-500">Monitoring → anomaly → attribution → ranked actions</p>
+      {% endblock %}
+    </div>
+  </footer>
+</body>
+</html>

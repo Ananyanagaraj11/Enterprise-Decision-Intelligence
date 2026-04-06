@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test</title>
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/moment@2.29.4/moment.min.js"></script>
+</head>
+<body style="background: #000; color: #fff; padding: 20px;">
+    <h1>Dashboard Test</h1>
+    <button onclick="testPrediction()" style="padding: 15px 30px; font-size: 16px;">Test Prediction</button>
+    <div id="result" style="margin-top: 20px; font-size: 14px;"></div>
+    
+    <script>
+        async function testPrediction() {
+            document.getElementById('result').textContent = 'Testing...';
+            try {
+                const response = await fetch('http://localhost:8000/predict', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({features: Array.from({length: 78}, () => Math.random() * 100)})
+                });
+                const data = await response.json();
+                document.getElementById('result').textContent = 'SUCCESS: ' + JSON.stringify(data, null, 2);
+            } catch(e) {
+                document.getElementById('result').textContent = 'ERROR: ' + e.message;
+            }
+        }
+    </script>
+</body>
+</html>

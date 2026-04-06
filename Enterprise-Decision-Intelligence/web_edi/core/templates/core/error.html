@@ -1,0 +1,15 @@
+{% extends "core/base.html" %}
+{% block title %}Setup needed{% endblock %}
+
+{% block main_padding %}pt-16{% endblock %}
+
+{% block content %}
+<div class="edi-card-strong max-w-lg mx-auto p-8 sm:p-10 text-center border-rose-200/60 bg-gradient-to-br from-rose-50/50 to-white/80">
+  <div class="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-rose-100 text-rose-600 mb-4 text-2xl font-display font-bold" aria-hidden="true">!</div>
+  <p class="text-rose-800 font-display font-semibold text-lg">{{ message }}</p>
+  <p class="text-slate-600 text-sm mt-4 leading-relaxed">{{ hint }}</p>
+  <a href="{% url 'dashboard' %}" class="mt-8 inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-indigo-600/20 hover:from-indigo-500 hover:to-violet-500 transition-all">
+    Back to dashboard
+  </a>
+</div>
+{% endblock %}

@@ -1,0 +1,60 @@
+=== ALL COMMANDS (Windows) ===
+Replace data/UNSW_NB15_traintest.csv with your CSV path.
+
+--- 1. Go to project folder ---
+cd "C:\Users\anany\Downloads\New folder (2)\ai-cyber-threat-intelligence-dashboard"
+
+--- 2. One-time setup ---
+  OPTION A - Portable Python (no system Python needed; use if python not installed or Store error):
+  scripts\install_portable_python.bat
+
+  OPTION B - If Python is already installed and on PATH:
+  scripts\setup_windows.bat
+
+--- 3. Activate venv (run in each new terminal before python commands) ---
+venv\Scripts\activate
+
+--- 4. Train model ---
+REM Single CSV (UNSW-NB15 or one CICIDS file):
+scripts\run_train.bat data\UNSW_NB15_traintest.csv
+
+REM CICIDS2017 folder (multiple CSVs in one folder):
+python_portable\python.exe training/train.py --data data/CICIDS2017 --use-cicids2017-dir --out-dir training/outputs --epochs 50 --max-rows-total 500000
+
+--- 4b. Train quick test (fewer rows) ---
+python training/train.py --data data/your_file.csv --out-dir training/outputs --max-rows 50000 --epochs 10
+
+--- 5. Copy artifacts to backend ---
+scripts\copy_artifacts.bat
+
+--- 5b. Copy artifacts (manual) ---
+mkdir backend\artifacts 2>nul
+copy training\outputs\model.pt backend\artifacts\
+copy training\outputs\scaler.joblib backend\artifacts\
+copy training\outputs\classes.pt backend\artifacts\
+copy training\outputs\feature_names.txt backend\artifacts\
+
+--- 6. Evaluate model ---
+python training/evaluate.py --model-dir training/outputs --data data/UNSW_NB15_traintest.csv --out-dir training/outputs
+
+--- 7. Start API (Terminal 1 - leave open) ---
+scripts\run_backend.bat
+
+--- 7b. Start API (manual) ---
+venv\Scripts\activate
+python -m uvicorn backend.app:app --reload --host 0.0.0.0 --port 8000
+
+--- 8. Start dashboard (Terminal 2 - new window) ---
+scripts\run_dashboard.bat
+
+--- 8b. Start dashboard (manual) ---
+venv\Scripts\activate
+python -m streamlit run dashboard/streamlit_app.py
+
+--- Full sequence (after Python installed + in project folder) ---
+scripts\setup_windows.bat
+venv\Scripts\activate
+python training/train.py --data data/UNSW_NB15_traintest.csv --out-dir training/outputs --epochs 50
+scripts\copy_artifacts.bat
+python training/evaluate.py --model-dir training/outputs --data data/UNSW_NB15_traintest.csv --out-dir training/outputs
+REM Then: scripts\run_backend.bat (Terminal 1), scripts\run_dashboard.bat (Terminal 2)

@@ -1,0 +1,9 @@
+{
+  "version": 2,
+  "framework": "other",
+  "buildCommand": "cd dashboard && npm run build",
+  "installCommand": "cd dashboard && npm install",
+  "outputDirectory": "dashboard",
+  "rewrites": [{ "source": "/", "destination": "/index.html" }],
+  "headers": [{ "source": "/(.*)", "headers": [{ "key": "Access-Control-Allow-Origin", "value": "*" }] }]
+}

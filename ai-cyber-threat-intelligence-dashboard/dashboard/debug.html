@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Test</title>
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/moment@2.29.4/moment.min.js"></script>
+</head>
+<body style="background: #000; color: #0f0; padding: 20px; font-family: monospace;">
+    <h1>Dashboard Debug Test</h1>
+    
+    <h2>Step 1: Check Libraries</h2>
+    <p>Plotly loaded: <span id="plotlyCheck">Checking...</span></p>
+    <p>Moment loaded: <span id="momentCheck">Checking...</span></p>
+    
+    <h2>Step 2: Test Backend Connection</h2>
+    <button onclick="testBackend()" style="padding: 10px 20px; font-size: 14px;">Test Backend</button>
+    <pre id="backendResult"></pre>
+    
+    <h2>Step 3: Test Prediction</h2>
+    <button onclick="testPrediction()" style="padding: 10px 20px; font-size: 14px;">Run Prediction</button>
+    <pre id="predictionResult"></pre>
+    
+    <h2>Step 4: Test Chart</h2>
+    <div id="testChart" style="width: 600px; height: 400px; background: #111; margin-top: 20px;"></div>
+    
+    <script>
+        // Check libraries
+        document.getElementById('plotlyCheck').textContent = typeof Plotly !== 'undefined' ? '✓ YES' : '✗ NO';
+        document.getElementById('momentCheck').textContent = typeof moment !== 'undefined' ? '✓ YES' : '✗ NO';
+        
+        // Test backend
+        async function testBackend() {
+            try {
+                const response = await fetch('http://localhost:8000/health');
+                const data = await response.json();
+                document.getElementById('backendResult').textContent = '✓ SUCCESS:\n' + JSON.stringify(data, null, 2);
+            } catch(e) {
+                document.getElementById('backendResult').textContent = '✗ ERROR:\n' + e.message;
+            }
+        }
+        
+        // Test prediction
+        async function testPrediction() {
+            try {
+                const features = Array.from({length: 78}, () => Math.random() * 100);
+                const response = await fetch('http://localhost:8000/predict', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({features})
+                });
+                const data = await response.json();
+                document.getElementById('predictionResult').textContent = '✓ SUCCESS:\n' + JSON.stringify(data, null, 2);
+                
+                // Draw test chart
+                Plotly.newPlot('testChart', [{
+                    values: [1, 2, 3],
+                    labels: ['A', 'B', 'C'],
+                    type: 'pie'
+                }], {
+                    paper_bgcolor: '#111',
+                    font: { color: '#0f0' }
+                });
+            } catch(e) {
+                document.getElementById('predictionResult').textContent = '✗ ERROR:\n' + e.message;
+            }
+        }
+    </script>
+</body>
+</html>

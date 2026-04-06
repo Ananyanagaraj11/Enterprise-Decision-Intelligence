@@ -1,0 +1,7 @@
+{
+  "name": "soc-lite-dashboard",
+  "private": true,
+  "scripts": {
+    "build": "node scripts/inject-config.js"
+  }
+}

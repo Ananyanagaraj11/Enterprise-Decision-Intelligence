@@ -1,0 +1,25 @@
+RUN BACKEND + FRONTEND LOCALLY
+=============================
+
+The backend serves the frontend. One command runs both.
+
+STEP 1 – Fix Python (if you see "Python was not found")
+  • Windows Settings → Apps → Advanced app settings → App execution aliases
+  • Turn OFF: "App Installer - python.exe" and "python3.exe"
+  • Install Python from https://www.python.org/downloads/
+  • During install: CHECK "Add python.exe to PATH"
+  • Close ALL terminals and open a new one
+
+STEP 2 – Install dependencies (first time only)
+  cd "c:\Users\anany\Downloads\New folder (2)\ai-cyber-threat-intelligence-dashboard"
+  pip install -r requirements.txt
+
+STEP 3 – Run
+  python -m uvicorn backend.app:app --host 0.0.0.0 --port 8000
+
+  Or double-click:  run_local.bat
+
+STEP 4 – Open in browser
+  Landing:    http://localhost:8000/
+  Analysis:   http://localhost:8000/dashboard/analysis.html
+  Dashboard:  http://localhost:8000/dashboard/dashboard.html

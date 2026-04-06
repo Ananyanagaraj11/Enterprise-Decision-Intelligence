@@ -1,0 +1,12 @@
+# Minimal deps for Render deploy (faster build). CPU-only PyTorch.
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch>=2.0.0
+pandas>=1.5.0
+numpy>=1.23.0
+scikit-learn>=1.2.0
+joblib>=1.2.0
+fastapi>=0.100.0
+uvicorn[standard]>=0.22.0
+pydantic>=2.0.0
+python-multipart>=0.0.6
+requests>=2.28.0

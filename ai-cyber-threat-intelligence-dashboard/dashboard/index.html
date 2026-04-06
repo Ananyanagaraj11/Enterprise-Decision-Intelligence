@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Cyber Threat Intelligence</title>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;600;700&display=swap');
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #000000;
+      height: 100vh;
+      width: 100vw;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    /* Animated Cyber Grid */
+    .cyber-grid {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      background-image:
+        linear-gradient(rgba(0, 212, 170, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 212, 170, 0.05) 1px, transparent 1px),
+        linear-gradient(rgba(59, 130, 246, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(59, 130, 246, 0.03) 1px, transparent 1px);
+      background-size: 100px 100px, 100px 100px, 20px 20px, 20px 20px;
+      animation: gridScroll 20s linear infinite;
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    @keyframes gridScroll {
+      0% { transform: translate(0, 0); }
+      100% { transform: translate(100px, 100px); }
+    }
+
+    /* Animated Wave Effect */
+    .wave-container {
+      position: fixed;
+      bottom: 0; left: 0;
+      width: 100%;
+      height: 300px;
+      z-index: 2;
+      opacity: 0.10;
+      pointer-events: none;
+    }
+
+    .wave {
+      position: absolute;
+      bottom: 0;
+      width: 200%;
+      height: 100%;
+      background: linear-gradient(90deg,
+        transparent,
+        rgba(0, 212, 170, 0.28) 25%,
+        rgba(59, 130, 246, 0.25) 50%,
+        rgba(139, 92, 246, 0.22) 75%,
+        transparent
+      );
+      animation: waveMove 16s linear infinite;
+      pointer-events: none;
+    }
+
+    .wave:nth-child(2) {
+      animation-duration: 22s;
+      animation-delay: -6s;
+      opacity: 0.45;
+    }
+
+    @keyframes waveMove {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+
+    /* Particle Canvas */
+    #particles-canvas {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 3;
+      pointer-events: none;
+    }
+
+    /* Glowing Orbs (subtle, not "space") */
+    .orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(90px);
+      opacity: 0.18;
+      z-index: 1;
+      animation: float 22s ease-in-out infinite;
+      pointer-events: none;
+    }
+
+    .orb1 {
+      width: 380px;
+      height: 380px;
+      background: radial-gradient(circle, rgba(0, 212, 170, 0.55), transparent);
+      top: -210px;
+      right: -210px;
+      animation-duration: 26s;
+    }
+
+    .orb2 {
+      width: 480px;
+      height: 480px;
+      background: radial-gradient(circle, rgba(59, 130, 246, 0.45), transparent);
+      bottom: -260px;
+      left: -260px;
+      animation-duration: 32s;
+      animation-delay: -10s;
+    }
+
+    .orb3 {
+      width: 320px;
+      height: 320px;
+      background: radial-gradient(circle, rgba(139, 92, 246, 0.35), transparent);
+      top: 55%;
+      right: 8%;
+      animation-duration: 38s;
+      animation-delay: -14s;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      33% { transform: translate(25px, -25px) scale(1.05); }
+      66% { transform: translate(-25px, 25px) scale(0.95); }
+    }
+
+    /* Radial Gradient Vignette */
+    .vignette {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle at center, transparent 0%, rgba(0,0,0,0.85) 100%);
+      z-index: 4;
+      pointer-events: none;
+    }
+
+    /* Scanning Line Effect */
+    .scan-line {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, rgba(0, 212, 170, 0.85), transparent);
+      z-index: 5;
+      animation: scan 7.5s linear infinite;
+      box-shadow: 0 0 18px rgba(0, 212, 170, 0.75);
+      pointer-events: none;
+    }
+
+    @keyframes scan {
+      0% { transform: translateY(0); opacity: 0; }
+      10% { opacity: 1; }
+      90% { opacity: 1; }
+      100% { transform: translateY(100vh); opacity: 0; }
+    }
+
+    .container {
+      position: relative;
+      z-index: 10;
+      text-align: center;
+      animation: fadeIn 1.6s ease-in;
+      padding: 0 14px;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(32px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .logo-container {
+      margin-bottom: 50px;
+      position: relative;
+    }
+
+    .logo {
+      width: 140px;
+      height: 140px;
+      margin: 0 auto;
+      background: linear-gradient(135deg, #00d4aa, #3b82f6, #8b5cf6);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      box-shadow:
+        0 0 60px rgba(0, 212, 170, 0.75),
+        0 0 120px rgba(59, 130, 246, 0.55),
+        inset 0 0 30px rgba(255, 255, 255, 0.25);
+      animation: logoFloat 4s ease-in-out infinite;
+    }
+
+    @keyframes logoFloat {
+      0%, 100% { transform: translateY(0) scale(1); }
+      50% { transform: translateY(-10px) scale(1.04); }
+    }
+
+    .logo::before {
+      content: '';
+      position: absolute;
+      width: 170px;
+      height: 170px;
+      border: 2px solid rgba(0, 212, 170, 0.35);
+      border-radius: 50%;
+      animation: rotate 4s linear infinite;
+      border-top-color: transparent;
+      border-right-color: transparent;
+    }
+
+    .logo::after {
+      content: '';
+      position: absolute;
+      width: 200px;
+      height: 200px;
+      border: 2px solid rgba(59, 130, 246, 0.25);
+      border-radius: 50%;
+      animation: rotate 6s linear infinite reverse;
+      border-bottom-color: transparent;
+      border-left-color: transparent;
+    }
+
+    @keyframes rotate {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    .logo-text {
+      font-size: 56px;
+      font-weight: 900;
+      font-family: 'Orbitron', sans-serif;
+      background: linear-gradient(135deg, #ffffff, #e0f2fe, #ffffff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: shimmer 3s ease-in-out infinite;
+      background-size: 200% 200%;
+      text-shadow: 0 0 28px rgba(255, 255, 255, 0.45);
+    }
+
+    @keyframes shimmer {
+      0%, 100% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+    }
+
+    .glass-card {
+      background: rgba(10, 15, 30, 0.42);
+      backdrop-filter: blur(30px);
+      border: 1px solid rgba(0, 212, 170, 0.28);
+      border-radius: 24px;
+      padding: 60px 80px;
+      box-shadow:
+        0 20px 60px rgba(0, 0, 0, 0.7),
+        0 0 100px rgba(0, 212, 170, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+      max-width: 980px;
+    }
+
+    h1 {
+      font-size: 48px;
+      font-weight: 700;
+      color: #ffffff;
+      margin-bottom: 16px;
+      letter-spacing: -1px;
+      font-family: 'Orbitron', sans-serif;
+      text-shadow: 0 0 26px rgba(0, 212, 170, 0.55);
+    }
+
+    .subtitle {
+      font-size: 18px;
+      color: #94a3b8;
+      margin-bottom: 40px;
+      font-weight: 400;
+      letter-spacing: 0.5px;
+    }
+
+    .enter-btn {
+      display: inline-block;
+      padding: 20px 50px;
+      background: linear-gradient(135deg, #00d4aa, #3b82f6);
+      color: white;
+      text-decoration: none;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 16px;
+      letter-spacing: 1px;
+      transition: all 0.35s ease;
+      box-shadow: 0 8px 24px rgba(0, 212, 170, 0.48);
+      position: relative;
+      overflow: hidden;
+      text-transform: uppercase;
+      border: none;
+    }
+
+    .enter-btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent);
+      transition: left 0.5s;
+    }
+    .enter-btn:hover::before { left: 100%; }
+
+    .enter-btn:hover {
+      transform: translateY(-3px) scale(1.05);
+      box-shadow: 0 12px 40px rgba(0, 212, 170, 0.75);
+    }
+
+    /* Button row fix (no overflow on mobile) */
+    .btn-row {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 8px;
+    }
+
+    .enter-btn.alt {
+      background: linear-gradient(135deg, #2A3F4F, #1e3a5f);
+      border: 1px solid #7DF2C6;
+      color: #7DF2C6;
+      box-shadow: none;
+    }
+
+    .status-bar {
+      margin-top: 30px;
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .status-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #22c55e;
+      animation: pulse 2s ease-in-out infinite;
+      box-shadow: 0 0 10px #22c55e;
+    }
+
+    /* Backend dot (changes color via JS) */
+    .status-dot.backend {
+      background: #64748b;
+      box-shadow: 0 0 10px rgba(100,116,139,0.7);
+      animation: none;
+    }
+    .status-dot.backend.online {
+      background: #22c55e;
+      box-shadow: 0 0 10px #22c55e;
+    }
+    .status-dot.backend.offline {
+      background: #ef4444;
+      box-shadow: 0 0 10px rgba(239,68,68,0.9);
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.55; transform: scale(1.18); }
+    }
+
+    @media (max-width: 900px) {
+      .glass-card { padding: 46px 22px; }
+      h1 { font-size: 30px; }
+      .subtitle { font-size: 15px; }
+      .enter-btn { padding: 18px 22px; font-size: 14px; }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Glowing Orbs -->
+  <div class="orb orb1"></div>
+  <div class="orb orb2"></div>
+  <div class="orb orb3"></div>
+
+  <!-- Animated Cyber Grid -->
+  <div class="cyber-grid"></div>
+
+  <!-- Wave Effect -->
+  <div class="wave-container">
+    <div class="wave"></div>
+    <div class="wave"></div>
+  </div>
+
+  <!-- Particle Canvas -->
+  <canvas id="particles-canvas"></canvas>
+
+  <!-- Vignette -->
+  <div class="vignette"></div>
+
+  <!-- Scanning Line -->
+  <div class="scan-line"></div>
+
+  <div class="container">
+    <div class="logo-container">
+      <div class="logo">
+        <span class="logo-text">AI</span>
+      </div>
+    </div>
+
+    <div class="glass-card">
+      <h1>SOC Lite: AI-Powered Network Intrusion Detection System</h1>
+      <p class="subtitle">Real-time Network Intrusion Detection System</p>
+      <p style="font-size: 14px; color: #94a3b8; margin-bottom: 18px;">
+        1. Upload CSV → 2. Analyze → 3. View Dashboard
+      </p>
+
+      <div class="btn-row">
+        <a href="analysis.html" class="enter-btn">1. CSV Analysis →</a>
+        <a href="dashboard.html" class="enter-btn alt">2. Dashboard</a>
+      </div>
+
+      <div class="status-bar">
+        <div class="status-item">
+          <span class="status-dot"></span>
+          <span>System Online</span>
+        </div>
+
+        <div class="status-item">
+          <span class="status-dot backend" id="backendDot"></span>
+          <span id="backendText">Backend Checking...</span>
+        </div>
+
+        <div class="status-item"><span>CICIDS2017 Dataset</span></div>
+        <div class="status-item"><span>4 Threat Classes</span></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Backend API base (same logic style as your other pages)
+    // If window.ENV_API_BASE exists (ngrok/deploy), use it.
+    // Else: if not localhost, use same-origin ''.
+    // Else use localhost:8000.
+    const API_BASE = (typeof window !== 'undefined' && window.ENV_API_BASE)
+      ? window.ENV_API_BASE
+      : (typeof window !== 'undefined' && (window.location.port === '8000' || !/^localhost$/i.test(window.location.hostname)))
+        ? ''
+        : 'http://localhost:8000';
+
+    async function checkBackend() {
+      const dot = document.getElementById('backendDot');
+      const text = document.getElementById('backendText');
+
+      try {
+        const r = await fetch(`${API_BASE}/health`, { method: 'GET' });
+        if (!r.ok) throw new Error('not ok');
+        const data = await r.json();
+
+        dot.classList.remove('offline');
+        dot.classList.add('online');
+
+        const status = (data && data.status) ? data.status : 'healthy';
+        text.textContent = `Backend Connected (${status})`;
+      } catch (e) {
+        dot.classList.remove('online');
+        dot.classList.add('offline');
+        text.textContent = 'Backend Offline (start port 8000)';
+      }
+    }
+
+    checkBackend();
+    setInterval(checkBackend, 6000);
+
+    // SOC-style Particle Network (fast + looks like network traffic)
+    const canvas = document.getElementById('particles-canvas');
+    const ctx = canvas.getContext('2d', { alpha: true });
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+
+    // Dynamic particle count for performance
+    const isSmall = Math.min(window.innerWidth, window.innerHeight) < 800;
+    const PARTICLE_COUNT = isSmall ? 70 : 110;  // you had 110; keep but safer on small screens
+    const LINK_DIST = isSmall ? 75 : 90;
+
+    class Particle {
+      constructor() { this.reset(); }
+
+      reset() {
+        this.x = Math.random() * canvas.width;
+        this.y = Math.random() * canvas.height;
+
+        // Mostly left -> right flow to feel like "packet traffic"
+        this.vx = (Math.random() * 0.6) + 0.1;
+        this.vy = (Math.random() - 0.5) * 0.25;
+
+        this.radius = Math.random() * 2.2 + 0.6;
+        this.opacity = Math.random() * 0.55 + 0.15;
+        this.hue = Math.random() * 25 + 175; // cyan/blue range
+      }
+
+      update() {
+        this.x += this.vx;
+        this.y += this.vy;
+
+        // Wrap-around (looks like continuous traffic)
+        if (this.x > canvas.width + 10) this.x = -10;
+        if (this.x < -10) this.x = canvas.width + 10;
+        if (this.y > canvas.height + 10) this.y = -10;
+        if (this.y < -10) this.y = canvas.height + 10;
+      }
+
+      draw() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+
+        const g = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.radius);
+        g.addColorStop(0, `hsla(${this.hue}, 100%, 60%, ${this.opacity})`);
+        g.addColorStop(1, `hsla(${this.hue}, 100%, 60%, 0)`);
+
+        ctx.fillStyle = g;
+        ctx.fill();
+      }
+    }
+
+    const particles = [];
+    for (let i = 0; i < PARTICLE_COUNT; i++) particles.push(new Particle());
+
+    function connectParticles() {
+      for (let i = 0; i < particles.length; i++) {
+        for (let j = i + 1; j < particles.length; j++) {
+          const dx = particles[i].x - particles[j].x;
+          const dy = particles[i].y - particles[j].y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+
+          if (dist < LINK_DIST) {
+            const op = 0.28 * (1 - dist / LINK_DIST);
+
+            ctx.beginPath();
+            const lg = ctx.createLinearGradient(
+              particles[i].x, particles[i].y,
+              particles[j].x, particles[j].y
+            );
+            lg.addColorStop(0, `rgba(0, 212, 170, ${op})`);
+            lg.addColorStop(1, `rgba(59, 130, 246, ${op})`);
+
+            ctx.strokeStyle = lg;
+            ctx.lineWidth = 0.5;
+            ctx.moveTo(particles[i].x, particles[i].y);
+            ctx.lineTo(particles[j].x, particles[j].y);
+            ctx.stroke();
+          }
+        }
+      }
+    }
+
+    function animate() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      for (const p of particles) {
+        p.update();
+        p.draw();
+      }
+
+      connectParticles();
+      requestAnimationFrame(animate);
+    }
+
+    animate();
+  </script>
+</body>
+</html>
