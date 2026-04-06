@@ -26,6 +26,7 @@ class MonitoringAgent:
         state.metric_name = metric_name
         state.timestamp = pd.Timestamp(dates[idx]).to_pydatetime()
         state.current_value = float(s.iloc[idx])
+        state.metric_history = [float(v) for v in s.tolist()]
         state.rolling_mean = float(rm.iloc[idx]) if np.isfinite(rm.iloc[idx]) else None
         state.rolling_std = float(rstd.iloc[idx]) if np.isfinite(rstd.iloc[idx]) else None
         state.ewma_value = float(ewma.iloc[idx]) if np.isfinite(ewma.iloc[idx]) else None

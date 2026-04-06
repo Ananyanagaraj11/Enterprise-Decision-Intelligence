@@ -1,8 +1,12 @@
 from __future__ import annotations
 
+import json
+import os
+from urllib import request
 from datetime import datetime
 from typing import Any
 
+from enterprise_decision_intel.config import DetectionConfig
 from enterprise_decision_intel.shared_memory import SharedMemory
 
 
@@ -29,11 +33,55 @@ def _fmt_day(iso: str | None) -> str:
 
 
 class ExplanationAgent:
-    """Structured narrative from computed stats only (no external API)."""
+    """Structured narrative from computed stats; optional LLM API if configured."""
 
     def run(self, state: SharedMemory) -> SharedMemory:
-        state.explanation_text = self._template_explain(_payload_from_state(state)).strip()
+        payload = _payload_from_state(state)
+        state.explanation_text = self._llm_or_template_explain(payload).strip()
         return state
+
+    def _llm_or_template_explain(self, payload: dict[str, Any]) -> str:
+        endpoint = os.getenv("LLM_API_ENDPOINT", "").strip()
+        api_key = os.getenv("LLM_API_KEY", "").strip()
+        model = os.getenv("LLM_MODEL", "gpt-4o-mini").strip()
+        if not endpoint or not api_key:
+            return self._template_explain(payload)
+        try:
+            prompt = (
+                "You are an enterprise analytics explanation assistant.\n"
+                "Use ONLY values present in the JSON payload. Do NOT invent numbers.\n"
+                "Return exactly three sections in plain text:\n"
+                "1) What happened\n2) Why it happened\n3) What to do\n\n"
+                f"Payload:\n{json.dumps(payload, ensure_ascii=True)}"
+            )
+            body = {
+                "model": model,
+                "messages": [
+                    {"role": "system", "content": "Use only provided computed values."},
+                    {"role": "user", "content": prompt},
+                ],
+                "temperature": 0.0,
+            }
+            req = request.Request(
+                endpoint,
+                data=json.dumps(body).encode("utf-8"),
+                headers={
+                    "Content-Type": "application/json",
+                    "Authorization": f"Bearer {api_key}",
+                },
+                method="POST",
+            )
+            with request.urlopen(req, timeout=20) as resp:
+                out = json.loads(resp.read().decode("utf-8"))
+            text = (
+                out.get("choices", [{}])[0]
+                .get("message", {})
+                .get("content", "")
+                .strip()
+            )
+            return text or self._template_explain(payload)
+        except Exception:
+            return self._template_explain(payload)
 
     def _template_explain(self, payload: dict[str, Any]) -> str:
         m = payload["metric_name"].replace("_", " ")
@@ -61,7 +109,19 @@ class ExplanationAgent:
                 + (f"; next: {acts[1]['label']}" if len(acts) > 1 else "")
                 + "."
             )
-        if payload.get("flagged_for_review"):
+        if payload.get("execution_status") == "pending_human_approval":
+            lines.append("Awaiting human approval before executing ranked actions.")
+        elif payload.get("execution_status") == "approved_for_execution":
+            lines.append("Human approval recorded; ranked actions are cleared for execution in this simulation.")
+        min_conf = float(
+            payload.get("min_confidence")
+            if payload.get("min_confidence") is not None
+            else DetectionConfig().min_confidence
+        )
+        conf = payload.get("confidence")
+        if payload.get("flagged_for_review") and (
+            conf is None or float(conf or 0.0) < min_conf
+        ):
             lines.append("Flagged for human review (low confidence or missing baseline).")
         return "\n".join(lines)
 
@@ -78,6 +138,8 @@ def _payload_from_state(state: SharedMemory) -> dict[str, Any]:
         "confidence": state.confidence,
         "is_anomaly": state.is_anomaly,
         "flagged_for_review": state.flagged_for_review,
+        "execution_status": state.execution_status,
+        "min_confidence": DetectionConfig().min_confidence,
         "root_causes": state.root_causes,
         "ranked_actions": state.ranked_actions,
         "controller_notes": state.controller_notes,

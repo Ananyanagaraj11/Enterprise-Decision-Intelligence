@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import statistics
 from typing import Any
 
 from enterprise_decision_intel.config import (
@@ -18,10 +19,11 @@ class DecisionAgent:
         self,
         actions: list[CorrectiveAction] | None = None,
         ctrl: ControllerConfig | None = None,
+        utility_weights: dict[str, float] | None = None,
     ) -> None:
         self.actions = actions or list(DEFAULT_ACTIONS)
         self.ctrl = ctrl or ControllerConfig()
-        self.weights = default_utility_weights()
+        self.weights = utility_weights or default_utility_weights()
 
     def _utility(self, a: CorrectiveAction) -> float:
         return (
@@ -29,6 +31,33 @@ class DecisionAgent:
             - self.weights["risk"] * a.risk_variance
             - self.weights["cost"] * (a.operational_cost / 5.0)
         )
+
+    def _historical_recovery_impact(self, state: SharedMemory) -> float:
+        """
+        Estimate impact from historical recovery behavior:
+        average next-step normalized correction after prior anomaly-like deviations.
+        """
+        xs = [float(v) for v in (state.metric_history or [])]
+        if len(xs) < 8 or state.rolling_mean is None or state.rolling_std is None:
+            return 0.0
+        mu = float(state.rolling_mean)
+        sig = max(float(state.rolling_std), 1e-6)
+        cur_sign = 1.0 if (float(state.current_value or 0.0) - mu) >= 0 else -1.0
+        recoveries: list[float] = []
+        for i in range(1, len(xs) - 1):
+            dev = xs[i] - mu
+            z = abs(dev) / sig
+            if z < 1.0:
+                continue
+            sign = 1.0 if dev >= 0 else -1.0
+            if sign != cur_sign:
+                continue
+            step_reversal = ((xs[i] - xs[i + 1]) * sign) / sig
+            recoveries.append(max(0.0, float(step_reversal)))
+        if not recoveries:
+            return 0.0
+        mean_recovery = statistics.mean(recoveries)
+        return float(max(0.0, min(1.0, mean_recovery / 2.5)))
 
     def _context_boost(self, action_id: str, root_causes: list[dict[str, Any]]) -> tuple[float, str]:
         """Tie-breaker so rankings shift when top attribution is channel vs region vs funnel signals."""
@@ -72,11 +101,19 @@ class DecisionAgent:
 
     def run(self, state: SharedMemory) -> SharedMemory:
         rcs = state.root_causes or []
+        hist_impact = self._historical_recovery_impact(state)
         scored: list[tuple[float, CorrectiveAction, float, float, str]] = []
         for a in self.actions:
-            base = self._utility(a)
+            dynamic_impact = max(0.0, min(1.0, 0.65 * a.expected_impact + 0.35 * hist_impact))
+            base = (
+                self.weights["impact"] * dynamic_impact
+                - self.weights["risk"] * a.risk_variance
+                - self.weights["cost"] * (a.operational_cost / 5.0)
+            )
             boost, note = self._context_boost(a.id, rcs)
-            scored.append((base + boost, a, base, boost, note))
+            hist_note = f"historical_recovery_impact={hist_impact:.3f}"
+            merged_note = f"{note}; {hist_note}" if note else hist_note
+            scored.append((base + boost, a, base, boost, merged_note))
 
         scored.sort(key=lambda x: -x[0])
         utilities = [u for u, _, _, _, _ in scored]

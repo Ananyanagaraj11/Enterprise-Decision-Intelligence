@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import Any
 
 
@@ -11,12 +11,30 @@ class DetectionConfig:
     z_threshold: float = 2.5
     min_confidence: float = 0.35
     min_std_floor: float = 1e-6
+    ewma_blend_alpha: float = 0.7
 
 
 @dataclass(frozen=True)
 class ControllerConfig:
     max_reeval_rounds: int = 1
     marginal_utility_ratio: float = 0.08
+    require_human_approval: bool = True
+
+
+def detection_sensitivity(name: str) -> DetectionConfig:
+    """
+    Same real CSV; lower z_threshold → more anomaly days (no synthetic injection).
+    standard: paper-style defaults. balanced/sensitive/explorer: demo-friendly on GA4 daily.
+    """
+    base = DetectionConfig()
+    key = (name or "standard").strip().lower()
+    if key == "balanced":
+        return replace(base, z_threshold=2.0, min_confidence=0.28)
+    if key == "sensitive":
+        return replace(base, z_threshold=1.7, min_confidence=0.22)
+    if key == "explorer":
+        return replace(base, z_threshold=1.45, min_confidence=0.18)
+    return base
 
 
 @dataclass

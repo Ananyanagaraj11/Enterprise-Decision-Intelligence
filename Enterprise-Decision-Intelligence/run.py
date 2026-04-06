@@ -19,6 +19,7 @@ try:
 except ImportError:
     pass
 
+from enterprise_decision_intel.config import detection_sensitivity
 from enterprise_decision_intel.pipeline import last_anomaly_report, run_dataset
 
 
@@ -30,6 +31,17 @@ def main() -> None:
         help="CSV from scripts/fetch_ga4_bigquery.py (public GA4 sample, no bundled fake data)",
     )
     p.add_argument("--metric", default="revenue", help="Metric column to monitor")
+    p.add_argument(
+        "--approve",
+        action="store_true",
+        help="Simulate human approval so execution_status can become approved_for_execution",
+    )
+    p.add_argument(
+        "--sensitivity",
+        choices=("standard", "balanced", "sensitive", "explorer"),
+        default="standard",
+        help="Same real CSV: lower z-threshold → more anomaly days (no injection). Evaluation scripts keep standard.",
+    )
     p.add_argument("--json", action="store_true", help="Print full JSONL for all days")
     args = p.parse_args()
     path = Path(args.csv)
@@ -44,16 +56,33 @@ def main() -> None:
             file=sys.stderr,
         )
         sys.exit(1)
-    result = run_dataset(path, metric_col=args.metric)
+    det = detection_sensitivity(args.sensitivity)
+    result = run_dataset(
+        path,
+        metric_col=args.metric,
+        human_approved=args.approve,
+        detection=det,
+    )
     if args.json:
         for row in result.rows:
             print(json.dumps(row, default=str))
         return
     hit = last_anomaly_report(result.rows)
-    if hit:
-        print(json.dumps(hit, indent=2, default=str))
-    else:
-        print(json.dumps(result.rows[-1], indent=2, default=str))
+    row = hit or result.rows[-1]
+    print(f"Date: {row.get('date')}")
+    print(f"Metric: {row.get('metric_name')}")
+    print(f"Anomaly detected: {row.get('is_anomaly')} (score={row.get('anomaly_score')}, confidence={row.get('confidence')})")
+    if row.get("root_causes_ranked"):
+        print("Root causes:")
+        for rc in row["root_causes_ranked"][:5]:
+            print(f"  - {rc['dimension']}={rc['value']}: {rc['contribution_pct']}%")
+    if row.get("ranked_actions"):
+        print("Ranked actions:")
+        for a in row["ranked_actions"][:3]:
+            print(f"  - {a['label']} (utility={a['utility']})")
+    print(f"Execution status: {row.get('execution_status')}")
+    print("\nExplanation:")
+    print(row.get("explanation_text", ""))
 
 
 if __name__ == "__main__":

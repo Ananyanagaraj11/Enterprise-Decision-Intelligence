@@ -1,0 +1,627 @@
+{
+  "mode": "inject",
+  "rows": 92,
+  "definitions": {
+    "agentic_detector": "rolling mean/std z-threshold (see DetectionConfig)",
+    "baseline_1": "global percentile bounds on early calibration window",
+    "baseline_2": "rolling z only, threshold=3.0 (stricter than agent default 2.5)",
+    "baseline_3": "manual script: day-over-day percent change",
+    "root_cause_gt": "injected dimension key (inject mode) or unavailable (oracle mode)",
+    "utility_baseline": "mean utility if actions were chosen uniformly at random"
+  },
+  "baselines_meta": {
+    "static": {
+      "lo": 1711.66,
+      "hi": 11833.897,
+      "name": "static_threshold"
+    },
+    "z_only": {
+      "z_threshold": 3.0,
+      "name": "z_only"
+    },
+    "manual_script": {
+      "pct_change": 0.16,
+      "name": "manual_script"
+    }
+  },
+  "detection": {
+    "agentic_system": {
+      "precision": 1.0,
+      "recall": 0.1,
+      "f1": 0.18181818181818182
+    },
+    "baseline_1_static_threshold": {
+      "precision": 0.1724137931034483,
+      "recall": 0.5,
+      "f1": 0.25641025641025644
+    },
+    "baseline_2_z_only": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0
+    },
+    "baseline_3_manual_script": {
+      "precision": 0.08974358974358974,
+      "recall": 0.7,
+      "f1": 0.1590909090909091
+    }
+  },
+  "root_cause": {
+    "top1": {
+      "top_k": 1.0,
+      "accuracy": 0.1,
+      "eligible_days": 10.0,
+      "hits": 1.0
+    },
+    "top3": {
+      "top_k": 3.0,
+      "accuracy": 0.1,
+      "eligible_days": 10.0,
+      "hits": 1.0
+    }
+  },
+  "decision": {
+    "mean_top1_utility": {
+      "mean_top1_utility": 0.667,
+      "anomaly_days_with_actions": 1.0
+    },
+    "utility_vs_random_action_mean": {
+      "agent_mean_utility": 0.667,
+      "baseline_mean_utility": 0.4257666666666666,
+      "gain": 0.2412333333333334
+    },
+    "ranking_consistency_vs_impact_order": {
+      "kendall_tau": 0.7272727272727272,
+      "n": 12.0
+    }
+  },
+  "system": {
+    "end_to_end_total_ms": 407.3570999898948,
+    "per_day_processing_ms": {
+      "mean_ms": 4.427794565107552,
+      "p50_ms": 4.427794565107552,
+      "p95_ms": 4.427794565107552,
+      "total_ms": 407.35709998989483
+    },
+    "confidence_proxy": {
+      "mean_confidence_on_true_anomaly_days": 0.44780777313162695,
+      "note": "Cohen kappa for explanations needs human rubric; not automated here."
+    }
+  },
+  "comparison_table": [
+    {
+      "system": "agentic_system",
+      "precision": 1.0,
+      "recall": 0.1,
+      "f1": 0.18181818181818182
+    },
+    {
+      "system": "baseline_1_static_threshold",
+      "precision": 0.1724137931034483,
+      "recall": 0.5,
+      "f1": 0.25641025641025644
+    },
+    {
+      "system": "baseline_2_z_only",
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0
+    },
+    {
+      "system": "baseline_3_manual_script",
+      "precision": 0.08974358974358974,
+      "recall": 0.7,
+      "f1": 0.1590909090909091
+    },
+    {
+      "system": "root_cause_top1",
+      "precision": NaN,
+      "recall": NaN,
+      "f1": 0.1
+    },
+    {
+      "system": "root_cause_top3",
+      "precision": NaN,
+      "recall": NaN,
+      "f1": 0.1
+    },
+    {
+      "system": "decision_rank_consistency",
+      "precision": NaN,
+      "recall": NaN,
+      "f1": 0.7272727272727272
+    }
+  ],
+  "advanced": {
+    "runs": 5,
+    "seeds": [
+      42,
+      43,
+      44,
+      45,
+      46
+    ],
+    "agent_f1": [
+      0.18181818181818182,
+      0.30769230769230765,
+      0.33333333333333337,
+      0.0,
+      0.16666666666666669
+    ],
+    "baseline2_f1": [
+      0.0,
+      0.33333333333333337,
+      0.18181818181818182,
+      0.0,
+      0.18181818181818182
+    ],
+    "paired_t_test_agent_vs_baseline2": {
+      "t_stat": 1.3118009037164258,
+      "p_value": 0.259808939751651
+    },
+    "cohens_kappa_explanation": null,
+    "note": "Kappa computed only when two human-rater label columns exist in input data.",
+    "reports": [
+      {
+        "mode": "inject",
+        "rows": 92,
+        "definitions": {
+          "agentic_detector": "rolling mean/std z-threshold (see DetectionConfig)",
+          "baseline_1": "global percentile bounds on early calibration window",
+          "baseline_2": "rolling z only, threshold=3.0 (stricter than agent default 2.5)",
+          "baseline_3": "manual script: day-over-day percent change",
+          "root_cause_gt": "injected dimension key (inject mode) or unavailable (oracle mode)",
+          "utility_baseline": "mean utility if actions were chosen uniformly at random"
+        },
+        "baselines_meta": {
+          "static": {
+            "lo": 1711.66,
+            "hi": 11833.897,
+            "name": "static_threshold"
+          },
+          "z_only": {
+            "z_threshold": 3.0,
+            "name": "z_only"
+          },
+          "manual_script": {
+            "pct_change": 0.16,
+            "name": "manual_script"
+          }
+        },
+        "detection": {
+          "agentic_system": {
+            "precision": 1.0,
+            "recall": 0.1,
+            "f1": 0.18181818181818182
+          },
+          "baseline_1_static_threshold": {
+            "precision": 0.1724137931034483,
+            "recall": 0.5,
+            "f1": 0.25641025641025644
+          },
+          "baseline_2_z_only": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          },
+          "baseline_3_manual_script": {
+            "precision": 0.08974358974358974,
+            "recall": 0.7,
+            "f1": 0.1590909090909091
+          }
+        },
+        "root_cause": {
+          "top1": {
+            "top_k": 1.0,
+            "accuracy": 0.1,
+            "eligible_days": 10.0,
+            "hits": 1.0
+          },
+          "top3": {
+            "top_k": 3.0,
+            "accuracy": 0.1,
+            "eligible_days": 10.0,
+            "hits": 1.0
+          }
+        },
+        "decision": {
+          "mean_top1_utility": {
+            "mean_top1_utility": 0.667,
+            "anomaly_days_with_actions": 1.0
+          },
+          "utility_vs_random_action_mean": {
+            "agent_mean_utility": 0.667,
+            "baseline_mean_utility": 0.4257666666666666,
+            "gain": 0.2412333333333334
+          },
+          "ranking_consistency_vs_impact_order": {
+            "kendall_tau": 0.7272727272727272,
+            "n": 12.0
+          }
+        },
+        "system": {
+          "end_to_end_total_ms": 382.9534000251442,
+          "per_day_processing_ms": {
+            "mean_ms": 4.162536956795046,
+            "p50_ms": 4.162536956795046,
+            "p95_ms": 4.162536956795046,
+            "total_ms": 382.9534000251442
+          },
+          "confidence_proxy": {
+            "mean_confidence_on_true_anomaly_days": 0.44780777313162695,
+            "note": "Cohen kappa for explanations needs human rubric; not automated here."
+          }
+        }
+      },
+      {
+        "mode": "inject",
+        "rows": 92,
+        "definitions": {
+          "agentic_detector": "rolling mean/std z-threshold (see DetectionConfig)",
+          "baseline_1": "global percentile bounds on early calibration window",
+          "baseline_2": "rolling z only, threshold=3.0 (stricter than agent default 2.5)",
+          "baseline_3": "manual script: day-over-day percent change",
+          "root_cause_gt": "injected dimension key (inject mode) or unavailable (oracle mode)",
+          "utility_baseline": "mean utility if actions were chosen uniformly at random"
+        },
+        "baselines_meta": {
+          "static": {
+            "lo": 1711.66,
+            "hi": 10772.699999999997,
+            "name": "static_threshold"
+          },
+          "z_only": {
+            "z_threshold": 3.0,
+            "name": "z_only"
+          },
+          "manual_script": {
+            "pct_change": 0.16,
+            "name": "manual_script"
+          }
+        },
+        "detection": {
+          "agentic_system": {
+            "precision": 0.6666666666666666,
+            "recall": 0.2,
+            "f1": 0.30769230769230765
+          },
+          "baseline_1_static_threshold": {
+            "precision": 0.1935483870967742,
+            "recall": 0.6,
+            "f1": 0.2926829268292683
+          },
+          "baseline_2_z_only": {
+            "precision": 1.0,
+            "recall": 0.2,
+            "f1": 0.33333333333333337
+          },
+          "baseline_3_manual_script": {
+            "precision": 0.1,
+            "recall": 0.8,
+            "f1": 0.1777777777777778
+          }
+        },
+        "root_cause": {
+          "top1": {
+            "top_k": 1.0,
+            "accuracy": 0.0,
+            "eligible_days": 10.0,
+            "hits": 0.0
+          },
+          "top3": {
+            "top_k": 3.0,
+            "accuracy": 0.1,
+            "eligible_days": 10.0,
+            "hits": 1.0
+          }
+        },
+        "decision": {
+          "mean_top1_utility": {
+            "mean_top1_utility": 0.6020333333333333,
+            "anomaly_days_with_actions": 3.0
+          },
+          "utility_vs_random_action_mean": {
+            "agent_mean_utility": 0.6020333333333333,
+            "baseline_mean_utility": 0.4257666666666666,
+            "gain": 0.17626666666666668
+          },
+          "ranking_consistency_vs_impact_order": {
+            "kendall_tau": 0.7272727272727272,
+            "n": 12.0
+          }
+        },
+        "system": {
+          "end_to_end_total_ms": 379.4134000199847,
+          "per_day_processing_ms": {
+            "mean_ms": 4.124058695869399,
+            "p50_ms": 4.124058695869399,
+            "p95_ms": 4.124058695869399,
+            "total_ms": 379.41340001998475
+          },
+          "confidence_proxy": {
+            "mean_confidence_on_true_anomaly_days": 0.4104476463004785,
+            "note": "Cohen kappa for explanations needs human rubric; not automated here."
+          }
+        }
+      },
+      {
+        "mode": "inject",
+        "rows": 92,
+        "definitions": {
+          "agentic_detector": "rolling mean/std z-threshold (see DetectionConfig)",
+          "baseline_1": "global percentile bounds on early calibration window",
+          "baseline_2": "rolling z only, threshold=3.0 (stricter than agent default 2.5)",
+          "baseline_3": "manual script: day-over-day percent change",
+          "root_cause_gt": "injected dimension key (inject mode) or unavailable (oracle mode)",
+          "utility_baseline": "mean utility if actions were chosen uniformly at random"
+        },
+        "baselines_meta": {
+          "static": {
+            "lo": 1711.66,
+            "hi": 13507.55499999999,
+            "name": "static_threshold"
+          },
+          "z_only": {
+            "z_threshold": 3.0,
+            "name": "z_only"
+          },
+          "manual_script": {
+            "pct_change": 0.16,
+            "name": "manual_script"
+          }
+        },
+        "detection": {
+          "agentic_system": {
+            "precision": 1.0,
+            "recall": 0.2,
+            "f1": 0.33333333333333337
+          },
+          "baseline_1_static_threshold": {
+            "precision": 0.1935483870967742,
+            "recall": 0.6,
+            "f1": 0.2926829268292683
+          },
+          "baseline_2_z_only": {
+            "precision": 1.0,
+            "recall": 0.1,
+            "f1": 0.18181818181818182
+          },
+          "baseline_3_manual_script": {
+            "precision": 0.0875,
+            "recall": 0.7,
+            "f1": 0.15555555555555553
+          }
+        },
+        "root_cause": {
+          "top1": {
+            "top_k": 1.0,
+            "accuracy": 0.0,
+            "eligible_days": 10.0,
+            "hits": 0.0
+          },
+          "top3": {
+            "top_k": 3.0,
+            "accuracy": 0.0,
+            "eligible_days": 10.0,
+            "hits": 0.0
+          }
+        },
+        "decision": {
+          "mean_top1_utility": {
+            "mean_top1_utility": 0.5640499999999999,
+            "anomaly_days_with_actions": 2.0
+          },
+          "utility_vs_random_action_mean": {
+            "agent_mean_utility": 0.5640499999999999,
+            "baseline_mean_utility": 0.4257666666666666,
+            "gain": 0.1382833333333333
+          },
+          "ranking_consistency_vs_impact_order": {
+            "kendall_tau": 0.7272727272727272,
+            "n": 12.0
+          }
+        },
+        "system": {
+          "end_to_end_total_ms": 375.21680002100766,
+          "per_day_processing_ms": {
+            "mean_ms": 4.078443478489214,
+            "p50_ms": 4.078443478489214,
+            "p95_ms": 4.078443478489214,
+            "total_ms": 375.21680002100766
+          },
+          "confidence_proxy": {
+            "mean_confidence_on_true_anomaly_days": 0.43717622266041073,
+            "note": "Cohen kappa for explanations needs human rubric; not automated here."
+          }
+        }
+      },
+      {
+        "mode": "inject",
+        "rows": 92,
+        "definitions": {
+          "agentic_detector": "rolling mean/std z-threshold (see DetectionConfig)",
+          "baseline_1": "global percentile bounds on early calibration window",
+          "baseline_2": "rolling z only, threshold=3.0 (stricter than agent default 2.5)",
+          "baseline_3": "manual script: day-over-day percent change",
+          "root_cause_gt": "injected dimension key (inject mode) or unavailable (oracle mode)",
+          "utility_baseline": "mean utility if actions were chosen uniformly at random"
+        },
+        "baselines_meta": {
+          "static": {
+            "lo": 1711.66,
+            "hi": 9195.779999999997,
+            "name": "static_threshold"
+          },
+          "z_only": {
+            "z_threshold": 3.0,
+            "name": "z_only"
+          },
+          "manual_script": {
+            "pct_change": 0.16,
+            "name": "manual_script"
+          }
+        },
+        "detection": {
+          "agentic_system": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          },
+          "baseline_1_static_threshold": {
+            "precision": 0.10344827586206896,
+            "recall": 0.3,
+            "f1": 0.15384615384615385
+          },
+          "baseline_2_z_only": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          },
+          "baseline_3_manual_script": {
+            "precision": 0.12658227848101267,
+            "recall": 1.0,
+            "f1": 0.22471910112359553
+          }
+        },
+        "root_cause": {
+          "top1": {
+            "top_k": 1.0,
+            "accuracy": 0.0,
+            "eligible_days": 10.0,
+            "hits": 0.0
+          },
+          "top3": {
+            "top_k": 3.0,
+            "accuracy": 0.0,
+            "eligible_days": 10.0,
+            "hits": 0.0
+          }
+        },
+        "decision": {
+          "mean_top1_utility": {
+            "mean_top1_utility": 0.0,
+            "anomaly_days_with_actions": 0.0
+          },
+          "utility_vs_random_action_mean": {
+            "agent_mean_utility": 0.0,
+            "baseline_mean_utility": 0.4257666666666666,
+            "gain": -0.4257666666666666
+          },
+          "ranking_consistency_vs_impact_order": {
+            "kendall_tau": 0.0,
+            "n": 0.0
+          }
+        },
+        "system": {
+          "end_to_end_total_ms": 378.28919995808974,
+          "per_day_processing_ms": {
+            "mean_ms": 4.111839129979236,
+            "p50_ms": 4.111839129979236,
+            "p95_ms": 4.111839129979236,
+            "total_ms": 378.28919995808974
+          },
+          "confidence_proxy": {
+            "mean_confidence_on_true_anomaly_days": 0.3303713892932734,
+            "note": "Cohen kappa for explanations needs human rubric; not automated here."
+          }
+        }
+      },
+      {
+        "mode": "inject",
+        "rows": 92,
+        "definitions": {
+          "agentic_detector": "rolling mean/std z-threshold (see DetectionConfig)",
+          "baseline_1": "global percentile bounds on early calibration window",
+          "baseline_2": "rolling z only, threshold=3.0 (stricter than agent default 2.5)",
+          "baseline_3": "manual script: day-over-day percent change",
+          "root_cause_gt": "injected dimension key (inject mode) or unavailable (oracle mode)",
+          "utility_baseline": "mean utility if actions were chosen uniformly at random"
+        },
+        "baselines_meta": {
+          "static": {
+            "lo": 1711.66,
+            "hi": 10717.852999999997,
+            "name": "static_threshold"
+          },
+          "z_only": {
+            "z_threshold": 3.0,
+            "name": "z_only"
+          },
+          "manual_script": {
+            "pct_change": 0.16,
+            "name": "manual_script"
+          }
+        },
+        "detection": {
+          "agentic_system": {
+            "precision": 0.5,
+            "recall": 0.1,
+            "f1": 0.16666666666666669
+          },
+          "baseline_1_static_threshold": {
+            "precision": 0.1875,
+            "recall": 0.6,
+            "f1": 0.2857142857142857
+          },
+          "baseline_2_z_only": {
+            "precision": 1.0,
+            "recall": 0.1,
+            "f1": 0.18181818181818182
+          },
+          "baseline_3_manual_script": {
+            "precision": 0.09876543209876543,
+            "recall": 0.8,
+            "f1": 0.1758241758241758
+          }
+        },
+        "root_cause": {
+          "top1": {
+            "top_k": 1.0,
+            "accuracy": 0.0,
+            "eligible_days": 10.0,
+            "hits": 0.0
+          },
+          "top3": {
+            "top_k": 3.0,
+            "accuracy": 0.0,
+            "eligible_days": 10.0,
+            "hits": 0.0
+          }
+        },
+        "decision": {
+          "mean_top1_utility": {
+            "mean_top1_utility": 0.5634,
+            "anomaly_days_with_actions": 2.0
+          },
+          "utility_vs_random_action_mean": {
+            "agent_mean_utility": 0.5634,
+            "baseline_mean_utility": 0.4257666666666666,
+            "gain": 0.13763333333333339
+          },
+          "ranking_consistency_vs_impact_order": {
+            "kendall_tau": 0.7272727272727272,
+            "n": 12.0
+          }
+        },
+        "system": {
+          "end_to_end_total_ms": 379.0840000147,
+          "per_day_processing_ms": {
+            "mean_ms": 4.120478261029348,
+            "p50_ms": 4.120478261029348,
+            "p95_ms": 4.120478261029348,
+            "total_ms": 379.0840000147
+          },
+          "confidence_proxy": {
+            "mean_confidence_on_true_anomaly_days": 0.3435746599729501,
+            "note": "Cohen kappa for explanations needs human rubric; not automated here."
+          }
+        }
+      }
+    ]
+  },
+  "reeval_smoke_test": {
+    "ok": true,
+    "reeval_round_before": 0,
+    "reeval_round_after": 1
+  }
+}

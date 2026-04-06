@@ -9,7 +9,13 @@ from enterprise_decision_intel.pipeline import _dim_key
 
 
 def _wide_cols(df: pd.DataFrame) -> list[str]:
-    return [c for c in df.columns if c.startswith("rev_region_") or c.startswith("rev_channel_")]
+    prefixes = (
+        "rev_region_",
+        "rev_channel_",
+        "rev_product_tier_",
+        "rev_customer_segment_",
+    )
+    return [c for c in df.columns if c.startswith(prefixes)]
 
 
 @dataclass
@@ -52,7 +58,9 @@ def inject_controlled_anomalies(
         raise ValueError("Series too short for injection")
     cols = _wide_cols(work)
     if not cols:
-        raise ValueError("Need rev_region_* / rev_channel_* columns for RCA ground truth")
+        raise ValueError(
+            "Need rev_region_* / rev_channel_* / rev_product_tier_* / rev_customer_segment_* columns for RCA ground truth"
+        )
 
     pool = list(range(min_warmup, n - 1))
     pick = rng.choice(pool, size=min(n_events, len(pool)), replace=False)
@@ -93,6 +101,10 @@ def inject_controlled_anomalies(
             work.at[i, "conversion_rate"] = float(work.at[i, "purchases"]) / max(ssn, 1e-9)
         if "aov" in work.columns and "purchases" in work.columns:
             work.at[i, "aov"] = float(work.at[i, "revenue"]) / max(float(work.at[i, "purchases"]), 1e-9)
+
+    from enterprise_decision_intel.data_pipeline import recompute_derived_metrics
+
+    work = recompute_derived_metrics(work)
 
     return InjectionResult(df=work, anomaly_flags=flags, root_cause_keys=keys)
 
